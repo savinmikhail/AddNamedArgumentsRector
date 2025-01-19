@@ -15,7 +15,7 @@
     ],
     "require": {
         "php": ">=8.2",
-        "nikic/php-parser": "^4.15|^5.1",
+        "nikic/php-parser": "^4.15 || ^5.1",
         "phpstan/phpstan": "^2.1.1",
         "rector/rector": "^2.0.0",
         "symplify/rule-doc-generator-contracts": "^11.2"
