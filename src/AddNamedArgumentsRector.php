@@ -16,13 +16,15 @@ use PHPStan\Reflection\ExtendedParameterReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Rector\AbstractRector;
+use Rector\ValueObject\PhpVersion;
+use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 
 /**
  * @see AddNamedArgumentsRectorTest
  */
-final class AddNamedArgumentsRector extends AbstractRector
+final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVersionInterface
 {
     public function __construct(
         private readonly ReflectionProvider $reflectionProvider,
@@ -43,14 +45,14 @@ final class AddNamedArgumentsRector extends AbstractRector
         return [FuncCall::class, StaticCall::class, MethodCall::class, New_::class];
     }
 
-    public function refactor(Node $node): Node
+    public function refactor(Node $node): ?Node
     {
         $parameters = $this->getParameters($node);
 
         /** @var FuncCall|StaticCall|MethodCall|New_ $node */
-        $this->addNamesToArgs($node, $parameters);
+        $hasChanged = $this->addNamesToArgs($node, $parameters);
 
-        return $node;
+        return $hasChanged ? $node : null;
     }
 
     /**
@@ -203,16 +205,25 @@ final class AddNamedArgumentsRector extends AbstractRector
     /**
      * @param ExtendedParameterReflection[] $parameters
      */
-    private function addNamesToArgs(FuncCall|StaticCall|MethodCall|New_ $node, array $parameters): void
-    {
+    private function addNamesToArgs(
+        FuncCall|StaticCall|MethodCall|New_ $node,
+        array $parameters,
+    ): bool {
         foreach ($node->args as $index => $arg) {
             if (! isset($parameters[$index])) {
-                return;
+                return false;
             }
             if ($arg instanceof Node\VariadicPlaceholder) {
-                return;
+                return false;
             }
             $arg->name = new Identifier($parameters[$index]->getName());
         }
+
+        return true;
+    }
+
+    public function provideMinPhpVersion(): int
+    {
+        return PhpVersion::PHP_80;
     }
 }
