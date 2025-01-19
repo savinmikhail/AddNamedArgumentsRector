@@ -1,0 +1,68 @@
+version: '3'
+tasks:
+  test:
+    cmd: 'vendor/bin/phpunit --coverage-html var/coverage {{.CLI_ARGS}}'
+
+  cs-fix:
+    cmd: 'vendor/bin/php-cs-fixer fix --diff --verbose {{.CLI_ARGS}}'
+
+  cs:
+    cmds:
+      - task: cs-fix
+        vars:
+          CLI_ARGS: "--dry-run --stop-on-violation {{.CLI_ARGS}}"
+
+  rector-fix:
+    cmd: 'vendor/bin/rector process {{.CLI_ARGS}}'
+
+  rector:
+    cmds:
+      - task: rector-fix
+        vars:
+          CLI_ARGS: "--dry-run {{.CLI_ARGS}}"
+
+  stan:
+    cmd: 'vendor/bin/phpstan {{.CLI_ARGS}}'
+
+  install:
+    cmd: 'composer install {{.CLI_ARGS}}'
+    sources:
+      - composer.json
+      - composer.lock
+    generates:
+      - vendor/autoload.php
+
+  composer-normalize-fix:
+    deps: [install]
+    cmds:
+      - 'composer normalize --diff {{.CLI_ARGS}}'
+
+  composer-normalize:
+    cmds:
+      - task: composer-normalize-fix
+        vars:
+          CLI_ARGS: '--dry-run {{.CLI_ARGS}}'
+
+  composer-validate: 'composer validate --strict --no-check-publish {{.CLI_ARGS}}'
+
+  composer-audit: 'composer audit {{.CLI_ARGS}}'
+
+  composer-check-require:
+    deps: [install]
+    cmd: 'vendor/bin/composer-require-checker check {{.CLI_ARGS}}'
+
+  composer-check-unused:
+    deps: [install]
+    cmd: 'vendor/bin/composer-unused {{.CLI_ARGS}}'
+
+  check:
+    cmds:
+      - task: cs
+#      - task: stan
+      - task: rector
+      - task: test
+      - task: composer-validate
+      - task: composer-audit
+      - task: composer-normalize
+#      - task: composer-check-require
+#      - task: composer-check-unused
