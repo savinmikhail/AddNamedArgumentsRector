@@ -17,3 +17,21 @@ I made this rule standalone, due to [discussion](https://github.com/rectorphp/re
 ```bash
 composer require --dev savinmikhail/add_named_arguments_rector
 ```
+
+### Usage
+
+Add new rule to your rector.php config file like that:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use Rector\Config\RectorConfig;
+
+return RectorConfig::configure()
+    ->withRules([
+        \SavinMikhail\AddNamedArgumentsRector\AddNamedArgumentsRector::class
+    ]);
+
+```
