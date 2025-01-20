@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SavinMikhail\AddNamedArgumentsRector;
 
+use InvalidArgumentException;
 use PhpParser\Node;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
@@ -14,18 +15,26 @@ use PhpParser\Node\Name;
 use PHPStan\Reflection\ClassMemberAccessAnswerer;
 use PHPStan\Reflection\ExtendedParameterReflection;
 use PHPStan\Reflection\ReflectionProvider;
+use Rector\Contract\Rector\ConfigurableRectorInterface;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Rector\AbstractRector;
 use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
+use RectorPrefix202501\Webmozart\Assert\Assert;
+use SavinMikhail\AddNamedArgumentsRector\Config\ConfigStrategy;
+use SavinMikhail\AddNamedArgumentsRector\Config\DefaultStrategy;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+
+use function count;
 
 /**
  * @see AddNamedArgumentsRectorTest
  */
-final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVersionInterface
+final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVersionInterface, ConfigurableRectorInterface
 {
+    private string $configStrategy = DefaultStrategy::class;
+
     public function __construct(
         private readonly ReflectionProvider $reflectionProvider,
     ) {}
@@ -48,6 +57,10 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
     public function refactor(Node $node): ?Node
     {
         $parameters = $this->getParameters($node);
+
+        if (!$this->configStrategy::shouldApply($node, $parameters)) {
+            return null;
+        }
 
         /** @var FuncCall|StaticCall|MethodCall|New_ $node */
         $hasChanged = $this->addNamesToArgs($node, $parameters);
@@ -225,5 +238,24 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
     public function provideMinPhpVersion(): int
     {
         return PhpVersion::PHP_80;
+    }
+
+    public function configure(array $configuration): void
+    {
+        Assert::lessThan(count($configuration), 2, 'You can pass only 1 strategy');
+        if ($configuration === []) {
+            return;
+        }
+        $strategyClass = $configuration[0];
+
+        if (!class_exists($strategyClass)) {
+            throw new InvalidArgumentException("Class {$strategyClass} does not exist.");
+        }
+
+        $strategy = new $strategyClass();
+
+        Assert::isInstanceOf($strategy, ConfigStrategy::class, 'Your strategy must implement ConfigStrategy interface');
+
+        $this->configStrategy = $strategyClass;
     }
 }
