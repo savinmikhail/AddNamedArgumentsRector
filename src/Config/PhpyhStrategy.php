@@ -27,7 +27,7 @@ final readonly class PhpyhStrategy implements ConfigStrategy
 
         // Skip if there's a @no-named-argument annotation
         $docComment = $node->getDocComment();
-        if ($docComment && str_contains($docComment->getText(), '@no-named-argument')) {
+        if ($docComment !== null && str_contains($docComment->getText(), '@no-named-argument')) {
             return false;
         }
 

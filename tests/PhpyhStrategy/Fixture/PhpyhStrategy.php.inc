@@ -1,23 +1,31 @@
 <?php
 
-function phpyh_strategy(string $hardcore): void {}
-function phpyh_strategy1(string $hardcore, string $course): void {}
-function phpyh_strategy2(string $hardcore, int $lynch): void {}
-function phpyh_strategy3(string $hardcore, string $course, float $php): void {}
+function oneParam(string $foo): void {}
+function twoParamWithSameType(string $foo, string $bar): void {}
+function twoParamWithDifferentTypes(string $foo, int $bar): void {}
+function threeParam(string $foo, string $bar, float $baz): void {}
+function threeParamWithOneRequired(string $foo, string $bar = '', float $baz = 0): void {}
 
-phpyh_strategy('4');
-phpyh_strategy1('4', '1');
-phpyh_strategy2('4', 23);
-phpyh_strategy3('4', '1', '8.3');
+oneParam('foo');
+twoParamWithSameType('foo', 'bar');
+twoParamWithDifferentTypes('foo', 23);
+threeParam('foo', 'bar', 8.3);
+///** @no-named-arguments  */
+//threeParam('foo', 'bar', 8.3);
+//threeParamWithOneRequired('foo');
 -----
 <?php
 
-function phpyh_strategy(string $hardcore): void {}
-function phpyh_strategy1(string $hardcore, string $course): void {}
-function phpyh_strategy2(string $hardcore, int $lynch): void {}
-function phpyh_strategy3(string $hardcore, string $course, float $php): void {}
+function oneParam(string $foo): void {}
+function twoParamWithSameType(string $foo, string $bar): void {}
+function twoParamWithDifferentTypes(string $foo, int $bar): void {}
+function threeParam(string $foo, string $bar, float $baz): void {}
+function threeParamWithOneRequired(string $foo, string $bar = '', float $baz = 0): void {}
 
-phpyh_strategy('4');
-phpyh_strategy1(hardcore: '4', course: '1');
-phpyh_strategy2('4', 23);
-phpyh_strategy3(hardcore: '4', course: '1', php: '8.3');
+oneParam('foo');
+twoParamWithSameType(foo: 'foo', bar: 'bar');
+twoParamWithDifferentTypes('foo', 23);
+threeParam(foo: 'foo', bar: 'bar', baz: 8.3);
+///** @no-named-arguments  */
+//threeParam('foo', 'bar', 8.3);
+//threeParamWithOneRequired('foo');
