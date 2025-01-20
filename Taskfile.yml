@@ -12,6 +12,12 @@ tasks:
         vars:
           CLI_ARGS: "--dry-run --stop-on-violation {{.CLI_ARGS}}"
 
+  run:
+    cmds:
+      - task: rector
+        vars:
+          CLI_ARGS: "--config=/Users/mikhailsavin/projects/AddNamedArgumentsRector/rector.dev.php {{.CLI_ARGS}}"
+
   rector-fix:
     cmd: 'vendor/bin/rector process {{.CLI_ARGS}}'
 
