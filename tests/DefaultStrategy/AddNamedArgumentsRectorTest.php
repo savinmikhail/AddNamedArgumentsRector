@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SavinMikhail\Tests\AddNamedArgumentsRector;
+namespace SavinMikhail\Tests\AddNamedArgumentsRector\DefaultStrategy;
 
 use Iterator;
 use PHPUnit\Framework\Attributes\DataProvider;
