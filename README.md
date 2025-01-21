@@ -4,16 +4,9 @@ The **AddNamedArgumentsRector** rule enhances your code by converting function, 
 
 ### Example
 
-Before applying the rule:
-
-```php
-str_contains('foo', 'bar');
-```
-
-After applying the rule:
-
-```php
-str_contains(haystack: 'foo', needle: 'bar');
+```diff
+- str_contains('foo', 'bar');
++ str_contains(haystack: 'foo', needle: 'bar');
 ```
 
 This feature works for:
