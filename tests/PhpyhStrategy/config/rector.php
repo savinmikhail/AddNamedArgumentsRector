@@ -7,9 +7,4 @@ use SavinMikhail\AddNamedArgumentsRector\AddNamedArgumentsRector;
 use SavinMikhail\AddNamedArgumentsRector\Config\PhpyhStrategy;
 
 return RectorConfig::configure()
-        ->withConfiguredRule(
-            AddNamedArgumentsRector::class,
-            [
-                PhpyhStrategy::class,
-            ],
-        );
+        ->withConfiguredRule(AddNamedArgumentsRector::class, [PhpyhStrategy::class]);
