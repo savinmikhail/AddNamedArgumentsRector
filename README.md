@@ -1,3 +1,6 @@
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/savinmikhail/AddNamedArgumentsRector/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/savinmikhail/AddNamedArgumentsRector/?branch=main)
+[![Code Coverage](https://scrutinizer-ci.com/g/savinmikhail/AddNamedArgumentsRector/badges/coverage.png?b=main)](https://scrutinizer-ci.com/g/savinmikhail/AddNamedArgumentsRector/?branch=main)
+
 # AddNamedArgumentsRector
 
 The **AddNamedArgumentsRector** rule enhances your code by converting function, method, or constructor calls to use named arguments where possible. Named arguments improve readability and reduce errors by explicitly naming the parameters being passed.
