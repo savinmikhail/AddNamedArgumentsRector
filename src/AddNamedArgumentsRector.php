@@ -118,10 +118,17 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
 
         /** @var ClassMemberAccessAnswerer $scope */
         $scope = $node->getAttribute(AttributeKey::SCOPE);
-        $methodReflection = $classReflection->getMethod($methodName, $scope);
+        $reflection = $classReflection->getMethod($methodName, $scope);
 
-        return $methodReflection->getOnlyVariant()
-            ->getParameters();
+        try {
+            return $reflection
+                ->getOnlyVariant()
+                ->getParameters();
+        } catch (\PHPStan\ShouldNotHappenException) {
+            return $reflection
+                ->getVariants()[0]
+                ->getParameters();
+        }
     }
 
     /**
@@ -142,10 +149,17 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
 
         /** @var ClassMemberAccessAnswerer $scope */
         $scope = $node->getAttribute(AttributeKey::SCOPE);
-        $methodReflection = $callerType->getMethod($methodName, $scope);
+        $reflection = $callerType->getMethod($methodName, $scope);
 
-        return $methodReflection->getOnlyVariant()
-            ->getParameters();
+        try {
+            return $reflection
+                ->getOnlyVariant()
+                ->getParameters();
+        } catch (\PHPStan\ShouldNotHappenException) {
+            return $reflection
+                ->getVariants()[0]
+                ->getParameters();
+        }
     }
 
     private function resolveCalledName(Node $node): ?string
@@ -188,10 +202,17 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
             return [];
         }
 
-        $constructorReflection = $classReflection->getConstructor();
+        $reflection = $classReflection->getConstructor();
 
-        return $constructorReflection->getOnlyVariant()
-            ->getParameters();
+        try {
+            return $reflection
+                ->getOnlyVariant()
+                ->getParameters();
+        } catch (\PHPStan\ShouldNotHappenException) {
+            return $reflection
+                ->getVariants()[0]
+                ->getParameters();
+        }
     }
 
     /**
@@ -211,9 +232,15 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
         }
         $reflection = $this->reflectionProvider->getFunction(new Name($calledName), $scope);
 
-        return $reflection
-            ->getOnlyVariant()
-            ->getParameters();
+        try {
+            return $reflection
+                ->getOnlyVariant()
+                ->getParameters();
+        } catch (\PHPStan\ShouldNotHappenException) {
+            return $reflection
+                ->getVariants()[0]
+                ->getParameters();
+        }
     }
 
     /**
