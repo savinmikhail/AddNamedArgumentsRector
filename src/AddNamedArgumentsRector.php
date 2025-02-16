@@ -15,6 +15,7 @@ use PhpParser\Node\Name;
 use PHPStan\Reflection\ClassMemberAccessAnswerer;
 use PHPStan\Reflection\ExtendedParameterReflection;
 use PHPStan\Reflection\ReflectionProvider;
+use PHPStan\ShouldNotHappenException;
 use Rector\Contract\Rector\ConfigurableRectorInterface;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Rector\AbstractRector;
@@ -124,7 +125,7 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
             return $reflection
                 ->getOnlyVariant()
                 ->getParameters();
-        } catch (\PHPStan\ShouldNotHappenException) {
+        } catch (ShouldNotHappenException) {
             return $reflection
                 ->getVariants()[0]
                 ->getParameters();
@@ -155,7 +156,7 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
             return $reflection
                 ->getOnlyVariant()
                 ->getParameters();
-        } catch (\PHPStan\ShouldNotHappenException) {
+        } catch (ShouldNotHappenException) {
             return $reflection
                 ->getVariants()[0]
                 ->getParameters();
@@ -208,7 +209,7 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
             return $reflection
                 ->getOnlyVariant()
                 ->getParameters();
-        } catch (\PHPStan\ShouldNotHappenException) {
+        } catch (ShouldNotHappenException) {
             return $reflection
                 ->getVariants()[0]
                 ->getParameters();
@@ -236,7 +237,7 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
             return $reflection
                 ->getOnlyVariant()
                 ->getParameters();
-        } catch (\PHPStan\ShouldNotHappenException) {
+        } catch (ShouldNotHappenException) {
             return $reflection
                 ->getVariants()[0]
                 ->getParameters();
