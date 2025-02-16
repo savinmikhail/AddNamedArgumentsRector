@@ -24,8 +24,8 @@ use SavinMikhail\AddNamedArgumentsRector\Config\ConfigStrategy;
 use SavinMikhail\AddNamedArgumentsRector\Config\DefaultStrategy;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-
 use Webmozart\Assert\Assert;
+
 use function count;
 
 /**
