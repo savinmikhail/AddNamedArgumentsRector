@@ -12,7 +12,6 @@ return RectorConfig::configure()
 ->withPaths([
     __DIR__ . '/.task'
     ])
-    ->withConfiguredRule(
-        AddNamedArgumentsRector::class,
-        [PhpyhStrategy::class]
-    );
+    ->withRules([
+        AddNamedArgumentsRector::class
+    ]);

@@ -1,7 +1,7 @@
 version: '3'
 tasks:
   test:
-    cmd: 'vendor/bin/phpunit --coverage-html var/coverage {{.CLI_ARGS}}'
+    cmd: 'docker compose exec rector-php sh -c "vendor/bin/phpunit --coverage-html var/coverage"'
 
   cs-fix:
     cmd: 'vendor/bin/php-cs-fixer fix --diff --verbose {{.CLI_ARGS}}'
@@ -31,7 +31,7 @@ tasks:
     cmd: 'vendor/bin/phpstan {{.CLI_ARGS}}'
 
   install:
-    cmd: 'composer install {{.CLI_ARGS}}'
+    cmd: 'docker compose exec rector-php sh -c "composer install"'
     sources:
       - composer.json
       - composer.lock

@@ -20,12 +20,12 @@ use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Rector\AbstractRector;
 use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use RectorPrefix202501\Webmozart\Assert\Assert;
 use SavinMikhail\AddNamedArgumentsRector\Config\ConfigStrategy;
 use SavinMikhail\AddNamedArgumentsRector\Config\DefaultStrategy;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 
+use Webmozart\Assert\Assert;
 use function count;
 
 /**
@@ -211,7 +211,8 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
         }
         $reflection = $this->reflectionProvider->getFunction(new Name($calledName), $scope);
 
-        return $reflection->getOnlyVariant()
+        return $reflection
+            ->getOnlyVariant()
             ->getParameters();
     }
 
@@ -222,14 +223,31 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
         FuncCall|StaticCall|MethodCall|New_ $node,
         array $parameters,
     ): bool {
+        $argNames = [];
         foreach ($node->args as $index => $arg) {
             if (! isset($parameters[$index])) {
                 return false;
             }
+
+            // Skip variadic parameters (...$param)
+            if ($parameters[$index]->isVariadic()) {
+                return false;
+            }
+
+            // Skip unpacking arguments (...$var)
+            if ($arg instanceof Node\Arg && $arg->unpack) {
+                return false;
+            }
+
             if ($arg instanceof Node\VariadicPlaceholder) {
                 return false;
             }
-            $arg->name = new Identifier($parameters[$index]->getName());
+
+            $argNames[$index] = new Identifier($parameters[$index]->getName());
+        }
+
+        foreach ($node->args as $index => $arg) {
+            $arg->name = $argNames[$index];
         }
 
         return true;

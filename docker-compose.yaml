@@ -1,0 +1,10 @@
+services:
+  rector-php:
+    restart: unless-stopped
+    build: .
+    volumes:
+      - ./:/app
+      - ./.git:/app/.git
+    working_dir: /app
+    entrypoint: [ "sh", "-c", "while true; do sleep 30; done" ]
+
