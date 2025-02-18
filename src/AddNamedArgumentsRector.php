@@ -271,6 +271,10 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
                 return false;
             }
 
+            if ($arg->name !== null) {
+                return false;
+            }
+
             $argNames[$index] = new Identifier($parameters[$index]->getName());
         }
 
