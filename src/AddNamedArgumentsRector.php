@@ -126,9 +126,9 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
                 ->getOnlyVariant()
                 ->getParameters();
         } catch (ShouldNotHappenException) {
-            return $reflection
-                ->getVariants()[0]
-                ->getParameters();
+            // for example in interface argument being called "$className" and in child class it being called "$entityName",
+            // we have no idea what will be resolved in a runtime, so just skip
+            return [];
         }
     }
 
@@ -157,9 +157,9 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
                 ->getOnlyVariant()
                 ->getParameters();
         } catch (ShouldNotHappenException) {
-            return $reflection
-                ->getVariants()[0]
-                ->getParameters();
+            // for example in interface argument being called "$className" and in child class it being called "$entityName",
+            // we have no idea what will be resolved in a runtime, so just skip
+            return [];
         }
     }
 
@@ -210,9 +210,9 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
                 ->getOnlyVariant()
                 ->getParameters();
         } catch (ShouldNotHappenException) {
-            return $reflection
-                ->getVariants()[0]
-                ->getParameters();
+            // for example in interface argument being called "$className" and in child class it being called "$entityName",
+            // we have no idea what will be resolved in a runtime, so just skip
+            return [];
         }
     }
 
@@ -238,9 +238,9 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
                 ->getOnlyVariant()
                 ->getParameters();
         } catch (ShouldNotHappenException) {
-            return $reflection
-                ->getVariants()[0]
-                ->getParameters();
+            // for example in interface argument being called "$className" and in child class it being called "$entityName",
+            // we have no idea what will be resolved in a runtime, so just skip
+            return [];
         }
     }
 
@@ -253,28 +253,6 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
     ): bool {
         $argNames = [];
         foreach ($node->args as $index => $arg) {
-            if (! isset($parameters[$index])) {
-                return false;
-            }
-
-            // Skip variadic parameters (...$param)
-            if ($parameters[$index]->isVariadic()) {
-                return false;
-            }
-
-            // Skip unpacking arguments (...$var)
-            if ($arg instanceof Node\Arg && $arg->unpack) {
-                return false;
-            }
-
-            if ($arg instanceof Node\VariadicPlaceholder) {
-                return false;
-            }
-
-            if ($arg->name !== null) {
-                return false;
-            }
-
             $argNames[$index] = new Identifier($parameters[$index]->getName());
         }
 

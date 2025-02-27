@@ -2,7 +2,7 @@
 
 use SavinMikhail\AddNamedArgumentsRector\AddNamedArgumentsRector;
 
-new ReflectionMethod(AddNamedArgumentsRector::class, 'getRuleDefinition');
+new ReflectionMethod(AddNamedArgumentsRector::class,'getRuleDefinition');
 
 ?>
 -----
@@ -10,6 +10,6 @@ new ReflectionMethod(AddNamedArgumentsRector::class, 'getRuleDefinition');
 
 use SavinMikhail\AddNamedArgumentsRector\AddNamedArgumentsRector;
 
-new ReflectionMethod(objectOrMethod: AddNamedArgumentsRector::class, method: 'getRuleDefinition');
+new ReflectionMethod(AddNamedArgumentsRector::class,'getRuleDefinition');
 
 ?>
