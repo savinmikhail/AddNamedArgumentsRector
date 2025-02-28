@@ -4,14 +4,21 @@ declare(strict_types=1);
 
 namespace SavinMikhail\AddNamedArgumentsRector\Config;
 
-use PhpParser\Node;
+use PhpParser\Node\Expr\FuncCall;
+use PhpParser\Node\Expr\MethodCall;
+use PhpParser\Node\Expr\New_;
+use PhpParser\Node\Expr\StaticCall;
+use PHPStan\Reflection\ClassReflection;
 
 use function count;
 
 final readonly class PhpyhStrategy implements ConfigStrategy
 {
-    public static function shouldApply(Node $node, array $parameters): bool
-    {
+    public static function shouldApply(
+        FuncCall|StaticCall|MethodCall|New_ $node,
+        array $parameters,
+        ?ClassReflection $classReflection = null,
+    ): bool {
         // Skip if there's only 1 argument
         if (count($parameters) === 1) {
             return false;

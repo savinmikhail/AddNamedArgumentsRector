@@ -10,7 +10,8 @@ use SavinMikhail\AddNamedArgumentsRector\Config\PhpyhStrategy;
 
 return RectorConfig::configure()
 ->withPaths([
-    __DIR__ . '/.task'
+//    __DIR__ . '/.task',
+    __DIR__ . '/src/AddNamedArgumentsRector.php',
     ])
     ->withRules([
         AddNamedArgumentsRector::class

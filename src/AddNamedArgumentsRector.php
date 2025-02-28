@@ -13,6 +13,7 @@ use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PHPStan\Reflection\ClassMemberAccessAnswerer;
+use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ExtendedParameterReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\ShouldNotHappenException;
@@ -57,16 +58,45 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
 
     public function refactor(Node $node): ?Node
     {
+        /** @var FuncCall|StaticCall|MethodCall|New_ $node */
         $parameters = $this->getParameters($node);
+        $classReflection = $this->getClassReflection($node);
 
-        if (!$this->configStrategy::shouldApply($node, $parameters)) {
+        if (!$this->configStrategy::shouldApply($node, $parameters, $classReflection)) {
             return null;
         }
 
-        /** @var FuncCall|StaticCall|MethodCall|New_ $node */
         $hasChanged = $this->addNamesToArgs($node, $parameters);
 
         return $hasChanged ? $node : null;
+    }
+
+    private function getClassReflection(FuncCall|StaticCall|MethodCall|New_ $node): ?ClassReflection
+    {
+        if ($node instanceof MethodCall) {
+            $callerType = $this->nodeTypeResolver->getType($node->var);
+            $classReflections = $callerType->getObjectClassReflections();
+
+            return $classReflections[0] ?? null;
+        }
+
+        if ($node instanceof StaticCall && $node->class instanceof Name) {
+            $className = $this->getName($node->class);
+
+            return $this->reflectionProvider->hasClass($className)
+                ? $this->reflectionProvider->getClass($className)
+                : null;
+        }
+
+        if ($node instanceof New_ && $node->class instanceof Name) {
+            $className = $this->getName($node->class);
+
+            return $this->reflectionProvider->hasClass($className)
+                ? $this->reflectionProvider->getClass($className)
+                : null;
+        }
+
+        return null;
     }
 
     /**
@@ -138,12 +168,12 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
     private function getMethodArgs(MethodCall $node): array
     {
         $callerType = $this->nodeTypeResolver->getType($node->var);
+
         $name = $node->name;
         if ($name instanceof Node\Expr) {
             return [];
         }
         $methodName = $name->name;
-
         if (! $callerType->hasMethod($methodName)->yes()) {
             return [];
         }
