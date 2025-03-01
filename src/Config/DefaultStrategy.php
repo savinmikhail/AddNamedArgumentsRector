@@ -64,6 +64,10 @@ final readonly class DefaultStrategy implements ConfigStrategy
             return false;
         }
 
+        if ($classReflection !== null && $classReflection->isInterface()) {
+            return false; // 🚨 Stop rule, cuz in runtime might be resolved any implementation of the interface, and the names of arguments might differ
+        }
+
         return true;
     }
 
