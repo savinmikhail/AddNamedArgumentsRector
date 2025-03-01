@@ -21,25 +21,8 @@ final readonly class DefaultStrategy implements ConfigStrategy
         array $parameters,
         ?ClassReflection $classReflection = null,
     ): bool {
-        // Check if the class has @no-named-arguments annotation
-        if ($classReflection !== null) {
-            $docComment = $classReflection->getNativeReflection()->getDocComment();
-            if ($docComment !== false && str_contains($docComment, '@no-named-arguments')) {
-                return false;
-            }
-        }
-
-        // Check if the function/method being called has @no-named-arguments annotation
-        $functionReflection = self::getFunctionReflection($node, $classReflection);
-        if ($functionReflection !== null) {
-            $docComment = $functionReflection->getDocComment();
-            if ($docComment !== false && str_contains($docComment, '@no-named-arguments')) {
-                return false;
-            }
-        }
-
         foreach ($node->args as $index => $arg) {
-            if (! isset($parameters[$index])) {
+            if (!isset($parameters[$index])) {
                 return false;
             }
 
@@ -62,13 +45,32 @@ final readonly class DefaultStrategy implements ConfigStrategy
             }
         }
 
+        // Check if the class has @no-named-arguments annotation
+        if ($classReflection !== null) {
+            $docComment = $classReflection->getNativeReflection()->getDocComment();
+            if ($docComment !== false && str_contains($docComment, '@no-named-arguments')) {
+                return false;
+            }
+        }
+
+        // Check if the function/method being called has @no-named-arguments annotation
+        $functionReflection = self::getFunctionReflection($node, $classReflection);
+        if ($functionReflection === null) {
+            return false; // 🚨 Stop rule if method doesn't exist (likely a @method annotation)
+        }
+
+        $docComment = $functionReflection->getDocComment();
+        if ($docComment !== false && str_contains($docComment, '@no-named-arguments')) {
+            return false;
+        }
+
         return true;
     }
 
     private static function getFunctionReflection(
         FuncCall|StaticCall|MethodCall|New_ $node,
         ?ClassReflection $classReflection,
-    ): ?ReflectionFunctionAbstract {
+    ): ReflectionFunctionAbstract|false|null {
         if ($node instanceof FuncCall) {
             if ($node->name instanceof Node\Name) {
                 try {
@@ -78,22 +80,23 @@ final readonly class DefaultStrategy implements ConfigStrategy
                 }
             }
         }
-        if ($node instanceof MethodCall && $classReflection !== null) {
-            if ($node->name instanceof Node\Identifier) {
-                try {
-                    return $classReflection->getNativeReflection()->getMethod($node->name->name);
-                } catch (ReflectionException) {
-                    return null;
+
+        if (
+            ($node instanceof MethodCall || $node instanceof StaticCall)
+            && $classReflection !== null
+            && $node->name instanceof Node\Identifier
+        ) {
+            try {
+                $methodName = $node->name->name;
+                $reflection = $classReflection->getNativeReflection();
+
+                if (!$reflection->hasMethod($methodName)) {
+                    return null; // 🚨 Indicate method does not exist
                 }
-            }
-        }
-        if ($node instanceof StaticCall && $classReflection !== null) {
-            if ($node->name instanceof Node\Identifier) {
-                try {
-                    return $classReflection->getNativeReflection()->getMethod($node->name->name);
-                } catch (ReflectionException) {
-                    return null;
-                }
+
+                return $reflection->getMethod($methodName);
+            } catch (ReflectionException) {
+                return null;
             }
         }
 
