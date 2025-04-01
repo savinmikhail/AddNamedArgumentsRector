@@ -45,11 +45,16 @@ final readonly class DefaultStrategy implements ConfigStrategy
             }
         }
 
-        // Check if the class has @no-named-arguments annotation
+        // Check if the class has @no-named-arguments annotation, even in parent classes
         if ($classReflection !== null) {
-            $docComment = $classReflection->getNativeReflection()->getDocComment();
-            if ($docComment !== false && str_contains($docComment, '@no-named-arguments')) {
-                return false;
+            $reflectionClass = $classReflection->getNativeReflection();
+
+            while ($reflectionClass) {
+                $docComment = $reflectionClass->getDocComment();
+                if ($docComment !== false && str_contains($docComment, '@no-named-arguments')) {
+                    return false;
+                }
+                $reflectionClass = $reflectionClass->getParentClass();
             }
         }
 
@@ -74,7 +79,7 @@ final readonly class DefaultStrategy implements ConfigStrategy
     private static function getFunctionReflection(
         FuncCall|StaticCall|MethodCall|New_ $node,
         ?ClassReflection $classReflection,
-    ): ReflectionFunctionAbstract|false|null {
+    ): null|ReflectionFunctionAbstract|false {
         if ($node instanceof FuncCall) {
             if ($node->name instanceof Node\Name) {
                 try {

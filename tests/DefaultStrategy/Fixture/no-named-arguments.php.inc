@@ -6,7 +6,9 @@ class AttributedContextDenormalizerTest extends TestCase
 {
     public function test(): void
     {
+        // this method inherits @no-named-arguments from parent class
         $attributedContext = $this->createMock(DateTimeImmutable::class);
+        // this method is called directly on class with @no-named-argument
         $attributedContext->method('getAttribute');
     }
 }
@@ -21,7 +23,9 @@ class AttributedContextDenormalizerTest extends TestCase
 {
     public function test(): void
     {
-        $attributedContext = $this->createMock(originalClassName: DateTimeImmutable::class);
+        // this method inherits @no-named-arguments from parent class
+        $attributedContext = $this->createMock(DateTimeImmutable::class);
+        // this method is called directly on class with @no-named-argument
         $attributedContext->method('getAttribute');
     }
 }
