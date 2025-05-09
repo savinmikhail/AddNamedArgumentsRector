@@ -19,7 +19,7 @@ use ReflectionException;
 use ReflectionFunction;
 use ReflectionFunctionAbstract;
 
-final readonly class ReflectionService
+final readonly class Reflection
 {
     private ParameterReflection $parameterReflection;
 

@@ -13,7 +13,7 @@ use PHPStan\BetterReflection\Reflection\Adapter\ReflectionClass;
 use PHPStan\BetterReflection\Reflection\Adapter\ReflectionEnum;
 use PHPStan\Reflection\ClassReflection;
 use ReflectionFunctionAbstract;
-use SavinMikhail\AddNamedArgumentsRector\Reflection\ReflectionService;
+use SavinMikhail\AddNamedArgumentsRector\Reflection\Reflection;
 
 final readonly class DefaultStrategy implements ConfigStrategy
 {
@@ -98,7 +98,7 @@ final readonly class DefaultStrategy implements ConfigStrategy
         FuncCall|StaticCall|MethodCall|New_ $node,
         ?ClassReflection $classReflection = null,
     ): bool {
-        $functionReflection = ReflectionService::getFunctionReflection(node: $node, classReflection: $classReflection);
+        $functionReflection = Reflection::getFunctionReflection(node: $node, classReflection: $classReflection);
         if ($functionReflection === null) {
             return false; // 🚨 Stop rule if method doesn't exist (likely a @method annotation)
         }

@@ -21,7 +21,7 @@ use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use SavinMikhail\AddNamedArgumentsRector\Config\ConfigStrategy;
 use SavinMikhail\AddNamedArgumentsRector\Config\DefaultStrategy;
-use SavinMikhail\AddNamedArgumentsRector\Reflection\ReflectionService;
+use SavinMikhail\AddNamedArgumentsRector\Reflection\Reflection;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 use Webmozart\Assert\Assert;
@@ -35,16 +35,16 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
 {
     private string $configStrategy = DefaultStrategy::class;
 
-    private readonly ReflectionService $reflectionService;
+    private readonly Reflection $reflectionService;
 
     public function __construct(
         ReflectionProvider $reflectionProvider,
         NodeNameResolver $nodeNameResolver,
         NodeTypeResolver $nodeTypeResolver,
-        ?ReflectionService $reflectionService = null,
+        ?Reflection $reflectionService = null,
     ) {
         if ($reflectionService === null) {
-            $reflectionService = new ReflectionService(
+            $reflectionService = new Reflection(
                 reflectionProvider: $reflectionProvider,
                 nodeNameResolver: $nodeNameResolver,
                 nodeTypeResolver: $nodeTypeResolver,
