@@ -91,14 +91,14 @@ final readonly class DefaultStrategy implements ConfigStrategy
     {
         $docComment = $reflection->getDocComment();
 
-        return $docComment !== false && str_contains($docComment, '@no-named-arguments');
+        return $docComment !== false && str_contains(haystack: $docComment, needle: '@no-named-arguments');
     }
 
     private static function functionAllowsNamedArguments(
         FuncCall|StaticCall|MethodCall|New_ $node,
         ?ClassReflection $classReflection = null,
     ): bool {
-        $functionReflection = ReflectionService::getFunctionReflection($node, $classReflection);
+        $functionReflection = ReflectionService::getFunctionReflection(node: $node, classReflection: $classReflection);
         if ($functionReflection === null) {
             return false; // 🚨 Stop rule if method doesn't exist (likely a @method annotation)
         }

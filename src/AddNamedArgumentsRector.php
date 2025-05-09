@@ -35,7 +35,7 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
 {
     private string $configStrategy = DefaultStrategy::class;
 
-    private ReflectionService $reflectionService;
+    private readonly ReflectionService $reflectionService;
 
     public function __construct(
         ReflectionProvider $reflectionProvider,
@@ -45,9 +45,9 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
     ) {
         if ($reflectionService === null) {
             $reflectionService = new ReflectionService(
-                $reflectionProvider,
-                $nodeNameResolver,
-                $nodeTypeResolver,
+                reflectionProvider: $reflectionProvider,
+                nodeNameResolver: $nodeNameResolver,
+                nodeTypeResolver: $nodeTypeResolver,
             );
         }
         $this->reflectionService = $reflectionService;
@@ -71,14 +71,14 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
     public function refactor(Node $node): ?Node
     {
         /** @var FuncCall|StaticCall|MethodCall|New_ $node */
-        $parameters = $this->reflectionService->getParameters($node);
-        $classReflection = $this->reflectionService->getClassReflection($node);
+        $parameters = $this->reflectionService->getParameters(node: $node);
+        $classReflection = $this->reflectionService->getClassReflection(node: $node);
 
         if (!$this->configStrategy::shouldApply($node, $parameters, $classReflection)) {
             return null;
         }
 
-        $this->addNamesToArgs($node, $parameters);
+        $this->addNamesToArgs(node: $node, parameters: $parameters);
 
         return $node;
     }
@@ -92,7 +92,7 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
     ): void {
         $argNames = [];
         foreach ($node->args as $index => $arg) {
-            $argNames[$index] = new Identifier($parameters[$index]->getName());
+            $argNames[$index] = new Identifier(name: $parameters[$index]->getName());
         }
 
         foreach ($node->args as $index => $arg) {
@@ -107,19 +107,19 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
 
     public function configure(array $configuration): void
     {
-        Assert::lessThan(count($configuration), 2, 'You can pass only 1 strategy');
+        Assert::lessThan(value: count(value: $configuration), limit: 2, message: 'You can pass only 1 strategy');
         if ($configuration === []) {
             return;
         }
         $strategyClass = $configuration[0];
 
-        if (!class_exists($strategyClass)) {
-            throw new InvalidArgumentException("Class {$strategyClass} does not exist.");
+        if (!class_exists(class: $strategyClass)) {
+            throw new InvalidArgumentException(message: "Class {$strategyClass} does not exist.");
         }
 
         $strategy = new $strategyClass();
 
-        Assert::isInstanceOf($strategy, ConfigStrategy::class, 'Your strategy must implement ConfigStrategy interface');
+        Assert::isInstanceOf(value: $strategy, class: ConfigStrategy::class, message: 'Your strategy must implement ConfigStrategy interface');
 
         $this->configStrategy = $strategyClass;
     }

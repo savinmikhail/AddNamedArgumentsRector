@@ -35,13 +35,13 @@ final readonly class ParameterReflection
         $parameters = [];
 
         if ($node instanceof New_) {
-            $parameters = $this->getConstructorArgs($node);
+            $parameters = $this->getConstructorArgs(node: $node);
         } elseif ($node instanceof MethodCall) {
-            $parameters = $this->getMethodArgs($node);
+            $parameters = $this->getMethodArgs(node: $node);
         } elseif ($node instanceof StaticCall) {
-            $parameters = $this->getStaticMethodArgs($node);
+            $parameters = $this->getStaticMethodArgs(node: $node);
         } elseif ($node instanceof FuncCall) {
-            $parameters = $this->getFuncArgs($node);
+            $parameters = $this->getFuncArgs(node: $node);
         }
 
         return $parameters;
@@ -56,7 +56,7 @@ final readonly class ParameterReflection
             return [];
         }
 
-        $className = $this->nodeNameResolver->getName($node->class);
+        $className = $this->nodeNameResolver->getName(node: $node->class);
         if (! $this->reflectionProvider->hasClass($className)) {
             return [];
         }
@@ -71,13 +71,13 @@ final readonly class ParameterReflection
             return [];
         }
 
-        if (! $classReflection->hasMethod($methodName)) {
+        if (! $classReflection->hasMethod(methodName: $methodName)) {
             return [];
         }
 
         /** @var ClassMemberAccessAnswerer $scope */
-        $scope = $node->getAttribute(AttributeKey::SCOPE);
-        $reflection = $classReflection->getMethod($methodName, $scope);
+        $scope = $node->getAttribute(key: AttributeKey::SCOPE);
+        $reflection = $classReflection->getMethod(methodName: $methodName, scope: $scope);
 
         try {
             return $reflection
@@ -95,7 +95,7 @@ final readonly class ParameterReflection
      */
     private function getMethodArgs(MethodCall $node): array
     {
-        $callerType = $this->nodeTypeResolver->getType($node->var);
+        $callerType = $this->nodeTypeResolver->getType(node: $node->var);
 
         $name = $node->name;
         if ($name instanceof Node\Expr) {
@@ -107,7 +107,7 @@ final readonly class ParameterReflection
         }
 
         /** @var ClassMemberAccessAnswerer $scope */
-        $scope = $node->getAttribute(AttributeKey::SCOPE);
+        $scope = $node->getAttribute(key: AttributeKey::SCOPE);
         $reflection = $callerType->getMethod($methodName, $scope);
 
         try {
@@ -126,7 +126,7 @@ final readonly class ParameterReflection
      */
     private function getConstructorArgs(New_ $node): array
     {
-        $calledName = $this->resolveCalledName($node);
+        $calledName = $this->resolveCalledName(node: $node);
         if ($calledName === null) {
             return [];
         }
@@ -158,17 +158,17 @@ final readonly class ParameterReflection
      */
     private function getFuncArgs(FuncCall $node): array
     {
-        $calledName = $this->resolveCalledName($node);
+        $calledName = $this->resolveCalledName(node: $node);
         if ($calledName === null) {
             return [];
         }
 
-        $scope = $node->getAttribute(AttributeKey::SCOPE);
+        $scope = $node->getAttribute(key: AttributeKey::SCOPE);
 
-        if (! $this->reflectionProvider->hasFunction(new Name($calledName), $scope)) {
+        if (! $this->reflectionProvider->hasFunction(new Name(name: $calledName), $scope)) {
             return [];
         }
-        $reflection = $this->reflectionProvider->getFunction(new Name($calledName), $scope);
+        $reflection = $this->reflectionProvider->getFunction(new Name(name: $calledName), $scope);
 
         try {
             return $reflection

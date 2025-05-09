@@ -6,6 +6,6 @@ use Rector\Config\RectorConfig;
 use SavinMikhail\AddNamedArgumentsRector\AddNamedArgumentsRector;
 
 return RectorConfig::configure()
-        ->withRules([
+        ->withRules(rules: [
             AddNamedArgumentsRector::class,
         ]);

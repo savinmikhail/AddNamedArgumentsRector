@@ -31,9 +31,9 @@ final readonly class ReflectionService
     ) {
         if ($parameterReflection === null) {
             $parameterReflection = new ParameterReflection(
-                $reflectionProvider,
-                $nodeNameResolver,
-                $nodeTypeResolver,
+                reflectionProvider: $reflectionProvider,
+                nodeNameResolver: $nodeNameResolver,
+                nodeTypeResolver: $nodeTypeResolver,
             );
         }
         $this->parameterReflection = $parameterReflection;
@@ -44,7 +44,7 @@ final readonly class ReflectionService
      */
     public function getParameters(Node $node): array
     {
-        return $this->parameterReflection->getParameters($node);
+        return $this->parameterReflection->getParameters(node: $node);
     }
 
     public static function getFunctionReflection(
@@ -54,7 +54,7 @@ final readonly class ReflectionService
         if ($node instanceof FuncCall) {
             if ($node->name instanceof Name) {
                 try {
-                    return new ReflectionFunction((string) $node->name);
+                    return new ReflectionFunction(function: (string) $node->name);
                 } catch (ReflectionException) {
                     return null;
                 }
@@ -70,11 +70,11 @@ final readonly class ReflectionService
                 $methodName = $node->name->name;
                 $reflection = $classReflection->getNativeReflection();
 
-                if (!$reflection->hasMethod($methodName)) {
+                if (!$reflection->hasMethod(name: $methodName)) {
                     return null; // 🚨 Indicate method does not exist
                 }
 
-                return $reflection->getMethod($methodName);
+                return $reflection->getMethod(name: $methodName);
             } catch (ReflectionException) {
                 return null;
             }
@@ -94,14 +94,14 @@ final readonly class ReflectionService
     public function getClassReflection(FuncCall|StaticCall|MethodCall|New_ $node): ?ClassReflection
     {
         if ($node instanceof MethodCall) {
-            $callerType = $this->nodeTypeResolver->getType($node->var);
+            $callerType = $this->nodeTypeResolver->getType(node: $node->var);
             $classReflections = $callerType->getObjectClassReflections();
 
             return $classReflections[0] ?? null;
         }
 
         if ($node instanceof StaticCall && $node->class instanceof Name) {
-            $className = $this->nodeNameResolver->getName($node->class);
+            $className = $this->nodeNameResolver->getName(node: $node->class);
 
             return $this->reflectionProvider->hasClass($className)
                 ? $this->reflectionProvider->getClass($className)
@@ -109,7 +109,7 @@ final readonly class ReflectionService
         }
 
         if ($node instanceof New_ && $node->class instanceof Name) {
-            $className = $this->nodeNameResolver->getName($node->class);
+            $className = $this->nodeNameResolver->getName(node: $node->class);
 
             return $this->reflectionProvider->hasClass($className)
                 ? $this->reflectionProvider->getClass($className)
