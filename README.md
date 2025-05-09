@@ -130,3 +130,7 @@ This rule was developed as a standalone feature following [this discussion](http
 ### Contributing
 
 Contributions, feedback, and suggestions are welcome! Feel free to open issues or submit pull requests.
+
+### Credits
+
+Thanks [Valentin](https://github.com/vudaltsov) for inspiration and advices
