@@ -21,8 +21,7 @@ use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use SavinMikhail\AddNamedArgumentsRector\Config\ConfigStrategy;
 use SavinMikhail\AddNamedArgumentsRector\Config\DefaultStrategy;
-use SavinMikhail\AddNamedArgumentsRector\Service\ParameterReflection;
-use SavinMikhail\AddNamedArgumentsRector\Service\ReflectionService;
+use SavinMikhail\AddNamedArgumentsRector\Reflection\ReflectionService;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 use Webmozart\Assert\Assert;
@@ -36,26 +35,14 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
 {
     private string $configStrategy = DefaultStrategy::class;
 
-    private ParameterReflection $parameterReflection;
-
     private ReflectionService $reflectionService;
 
     public function __construct(
         ReflectionProvider $reflectionProvider,
         NodeNameResolver $nodeNameResolver,
         NodeTypeResolver $nodeTypeResolver,
-        ?ParameterReflection $parameterReflection = null,
         ?ReflectionService $reflectionService = null,
     ) {
-        if ($parameterReflection === null) {
-            $parameterReflection = new ParameterReflection(
-                $reflectionProvider,
-                $nodeNameResolver,
-                $nodeTypeResolver,
-            );
-        }
-        $this->parameterReflection = $parameterReflection;
-
         if ($reflectionService === null) {
             $reflectionService = new ReflectionService(
                 $reflectionProvider,
@@ -84,16 +71,16 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
     public function refactor(Node $node): ?Node
     {
         /** @var FuncCall|StaticCall|MethodCall|New_ $node */
-        $parameters = $this->parameterReflection->getParameters($node);
+        $parameters = $this->reflectionService->getParameters($node);
         $classReflection = $this->reflectionService->getClassReflection($node);
 
         if (!$this->configStrategy::shouldApply($node, $parameters, $classReflection)) {
             return null;
         }
 
-        $hasChanged = $this->addNamesToArgs($node, $parameters);
+        $this->addNamesToArgs($node, $parameters);
 
-        return $hasChanged ? $node : null;
+        return $node;
     }
 
     /**
@@ -102,7 +89,7 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
     private function addNamesToArgs(
         FuncCall|StaticCall|MethodCall|New_ $node,
         array $parameters,
-    ): bool {
+    ): void {
         $argNames = [];
         foreach ($node->args as $index => $arg) {
             $argNames[$index] = new Identifier($parameters[$index]->getName());
@@ -111,8 +98,6 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
         foreach ($node->args as $index => $arg) {
             $arg->name = $argNames[$index];
         }
-
-        return true;
     }
 
     public function provideMinPhpVersion(): int

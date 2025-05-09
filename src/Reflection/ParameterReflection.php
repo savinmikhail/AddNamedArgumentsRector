@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SavinMikhail\AddNamedArgumentsRector\Service;
+namespace SavinMikhail\AddNamedArgumentsRector\Reflection;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr\FuncCall;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SavinMikhail\AddNamedArgumentsRector\Service;
+namespace SavinMikhail\AddNamedArgumentsRector\Reflection;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr\FuncCall;
@@ -11,6 +11,7 @@ use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Name;
 use PHPStan\Reflection\ClassReflection;
+use PHPStan\Reflection\ExtendedParameterReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\NodeTypeResolver\NodeTypeResolver;
@@ -20,11 +21,31 @@ use ReflectionFunctionAbstract;
 
 final readonly class ReflectionService
 {
+    private ParameterReflection $parameterReflection;
+
     public function __construct(
         private ReflectionProvider $reflectionProvider,
         protected NodeNameResolver $nodeNameResolver,
         protected NodeTypeResolver $nodeTypeResolver,
-    ) {}
+        ?ParameterReflection $parameterReflection = null,
+    ) {
+        if ($parameterReflection === null) {
+            $parameterReflection = new ParameterReflection(
+                $reflectionProvider,
+                $nodeNameResolver,
+                $nodeTypeResolver,
+            );
+        }
+        $this->parameterReflection = $parameterReflection;
+    }
+
+    /**
+     * @return ExtendedParameterReflection[]
+     */
+    public function getParameters(Node $node): array
+    {
+        return $this->parameterReflection->getParameters($node);
+    }
 
     public static function getFunctionReflection(
         FuncCall|StaticCall|MethodCall|New_ $node,

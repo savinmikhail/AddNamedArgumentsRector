@@ -10,7 +10,7 @@ use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\StaticCall;
 use PHPStan\Reflection\ClassReflection;
-use SavinMikhail\AddNamedArgumentsRector\Service\ReflectionService;
+use SavinMikhail\AddNamedArgumentsRector\Reflection\ReflectionService;
 
 final readonly class DefaultStrategy implements ConfigStrategy
 {
