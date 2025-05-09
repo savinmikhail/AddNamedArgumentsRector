@@ -15,18 +15,19 @@
     ],
     "require": {
         "php": ">=8.2",
-        "nikic/php-parser": "^4.15 || ^5.1",
-        "phpstan/phpstan": "^2.1.1",
-        "rector/rector": "^2.0.0",
+        "nikic/php-parser": "^4.19.4 || ^5.1",
+        "phpstan/phpstan": "^2.1.5",
+        "rector/rector": "^2.0.9",
         "symplify/rule-doc-generator-contracts": "^11.2"
     },
     "require-dev": {
         "ergebnis/composer-normalize": "^2.45",
-        "friendsofphp/php-cs-fixer": "^3.62",
+        "friendsofphp/php-cs-fixer": "^3.68.5",
         "icanhazstring/composer-unused": "^0.8.11",
-        "maglnet/composer-require-checker": "^4.14",
-        "phpunit/phpunit": "^10.5",
-        "phpyh/coding-standard": "^2.6.1"
+        "maglnet/composer-require-checker": "^4.15",
+        "phpunit/phpunit": "^10.5.45",
+        "phpyh/coding-standard": "^2.6.2",
+        "savinmikhail/export-ignore-check": "^0.1.7"
     },
     "prefer-stable": true,
     "autoload": {
