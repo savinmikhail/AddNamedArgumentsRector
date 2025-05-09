@@ -10,9 +10,7 @@ use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\StaticCall;
 use PHPStan\Reflection\ClassReflection;
-use ReflectionException;
-use ReflectionFunction;
-use ReflectionFunctionAbstract;
+use SavinMikhail\AddNamedArgumentsRector\Service\ReflectionService;
 
 final readonly class DefaultStrategy implements ConfigStrategy
 {
@@ -59,7 +57,7 @@ final readonly class DefaultStrategy implements ConfigStrategy
         }
 
         // Check if the function/method being called has @no-named-arguments annotation
-        $functionReflection = self::getFunctionReflection($node, $classReflection);
+        $functionReflection = ReflectionService::getFunctionReflection($node, $classReflection);
         if ($functionReflection === null) {
             return false; // 🚨 Stop rule if method doesn't exist (likely a @method annotation)
         }
@@ -74,49 +72,5 @@ final readonly class DefaultStrategy implements ConfigStrategy
         }
 
         return true;
-    }
-
-    private static function getFunctionReflection(
-        FuncCall|StaticCall|MethodCall|New_ $node,
-        ?ClassReflection $classReflection,
-    ): null|ReflectionFunctionAbstract|false {
-        if ($node instanceof FuncCall) {
-            if ($node->name instanceof Node\Name) {
-                try {
-                    return new ReflectionFunction((string) $node->name);
-                } catch (ReflectionException) {
-                    return null;
-                }
-            }
-        }
-
-        if (
-            ($node instanceof MethodCall || $node instanceof StaticCall)
-            && $classReflection !== null
-            && $node->name instanceof Node\Identifier
-        ) {
-            try {
-                $methodName = $node->name->name;
-                $reflection = $classReflection->getNativeReflection();
-
-                if (!$reflection->hasMethod($methodName)) {
-                    return null; // 🚨 Indicate method does not exist
-                }
-
-                return $reflection->getMethod($methodName);
-            } catch (ReflectionException) {
-                return null;
-            }
-        }
-
-        if ($node instanceof New_ && $classReflection !== null) {
-            try {
-                return $classReflection->getNativeReflection()->getConstructor();
-            } catch (ReflectionException) {
-                return null;
-            }
-        }
-
-        return null;
     }
 }
