@@ -133,4 +133,4 @@ Contributions, feedback, and suggestions are welcome! Feel free to open issues o
 
 ### Credits
 
-Thanks [Valentin](https://github.com/vudaltsov) for inspiration and advices
+Thanks to [Valentin](https://github.com/vudaltsov) for inspiration and advices
