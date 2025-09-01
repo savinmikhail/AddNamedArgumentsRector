@@ -1,5 +1,6 @@
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/savinmikhail/AddNamedArgumentsRector/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/savinmikhail/AddNamedArgumentsRector/?branch=main)
 [![Code Coverage](https://scrutinizer-ci.com/g/savinmikhail/AddNamedArgumentsRector/badges/coverage.png?b=main)](https://scrutinizer-ci.com/g/savinmikhail/AddNamedArgumentsRector/?branch=main)
+<a href="https://packagist.org/packages/savinmikhail/add_named_arguments_rector"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
 
 # AddNamedArgumentsRector
 
