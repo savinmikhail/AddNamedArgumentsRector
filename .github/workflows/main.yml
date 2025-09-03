@@ -40,7 +40,7 @@ jobs:
       - uses: ramsey/composer-install@v3
         with:
           composer-options: --optimize-autoloader
-      - run: task cs -- --format=checkstyle
+      - run: vendor/bin/php-cs-fixer fix --diff --verbose --dry-run --stop-on-violation --format=checkstyle
 
   tests:
     runs-on: ubuntu-latest
