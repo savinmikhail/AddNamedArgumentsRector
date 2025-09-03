@@ -27,7 +27,7 @@
         "maglnet/composer-require-checker": "^4.15",
         "phpunit/phpunit": "^10.5.45",
         "phpyh/coding-standard": "^2.6.2",
-        "savinmikhail/dist-size-optimizer": "^0.1.7"
+        "savinmikhail/dist-size-optimizer": "^0.2.4"
     },
     "prefer-stable": true,
     "autoload": {
