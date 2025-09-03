@@ -1,0 +1,39 @@
+name: dist-size
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress
+      - name: Run dist size check
+        id: dist
+        run: |
+          set +e
+          vendor/bin/dist-size-optimizer check --dry-run > /tmp/out.txt
+          exit_code=$?
+          cat /tmp/out.txt
+          if [ $exit_code -eq 0 ]; then
+            echo '{"schemaVersion":1,"label":"dist-size","message":"optimized","color":"brightgreen"}' > dist-size-status.json
+          else
+            echo '{"schemaVersion":1,"label":"dist-size","message":"needs optimization","color":"red"}' > dist-size-status.json
+          fi
+          echo "exit_code=$exit_code" >> $GITHUB_OUTPUT
+      - name: Commit status
+        if: github.event_name == 'push'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore: update dist-size badge [skip ci]'
+          file_pattern: dist-size-status.json
