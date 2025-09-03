@@ -6,6 +6,8 @@ namespace SavinMikhail\AddNamedArgumentsRector;
 
 use InvalidArgumentException;
 use PhpParser\Node;
+use PhpParser\ConstExprEvaluator;
+use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
@@ -37,11 +39,14 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
 
     private readonly Reflection $reflectionService;
 
+    private readonly ConstExprEvaluator $constExprEvaluator;
+
     public function __construct(
         ReflectionProvider $reflectionProvider,
         NodeNameResolver $nodeNameResolver,
         NodeTypeResolver $nodeTypeResolver,
         ?Reflection $reflectionService = null,
+        ?ConstExprEvaluator $constExprEvaluator = null,
     ) {
         if ($reflectionService === null) {
             $reflectionService = new Reflection(
@@ -51,6 +56,13 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
             );
         }
         $this->reflectionService = $reflectionService;
+        $this->constExprEvaluator = $constExprEvaluator ?? new ConstExprEvaluator(static function (string $name) {
+            if (\defined($name)) {
+                return \constant($name);
+            }
+
+            throw new \RuntimeException("Undefined constant: {$name}");
+        });
     }
 
     public function getRuleDefinition(): RuleDefinition
@@ -90,14 +102,43 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
         FuncCall|StaticCall|MethodCall|New_ $node,
         array $parameters,
     ): void {
-        $argNames = [];
+        $namedArgs = [];
         foreach ($node->args as $index => $arg) {
-            $argNames[$index] = new Identifier(name: $parameters[$index]->getName());
+            $parameter = $parameters[$index] ?? null;
+            if ($parameter === null) {
+                $namedArgs[] = $arg;
+                continue;
+            }
+
+            if ($this->shouldSkipArg($arg, $parameter)) {
+                continue;
+            }
+
+            $arg->name = new Identifier(name: $parameter->getName());
+            $namedArgs[] = $arg;
         }
 
-        foreach ($node->args as $index => $arg) {
-            $arg->name = $argNames[$index];
+        $node->args = $namedArgs;
+    }
+
+    private function shouldSkipArg(Arg $arg, ExtendedParameterReflection $parameter): bool
+    {
+        try {
+            $defaultValue = $parameter->getDefaultValue();
+        } catch (\Throwable) {
+            return false;
         }
+
+        try {
+            $argValue = $this->constExprEvaluator->evaluateDirectly($arg->value);
+        } catch (\Throwable) {
+            return false;
+        }
+
+        if ($defaultValue instanceof \PHPStan\Type\ConstantScalarType) {
+            $defaultValue = $defaultValue->getValue();
+        }
+        return $argValue === $defaultValue;
     }
 
     public function provideMinPhpVersion(): int

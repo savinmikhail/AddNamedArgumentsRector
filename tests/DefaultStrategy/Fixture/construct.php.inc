@@ -6,6 +6,6 @@ new DateTimeImmutable('now');
 -----
 <?php
 
-new DateTimeImmutable(datetime: 'now');
+new DateTimeImmutable();
 
 ?>
