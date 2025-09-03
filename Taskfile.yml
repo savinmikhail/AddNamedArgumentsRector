@@ -1,6 +1,9 @@
 version: '3'
 tasks:
+  up:
+    cmd: 'docker compose up -d'
   test:
+    deps: [install]
     cmd: 'docker compose exec rector-php sh -c "vendor/bin/phpunit --coverage-html var/coverage"'
 
   cs-fix:
@@ -31,6 +34,7 @@ tasks:
     cmd: 'docker compose exec rector-php sh -c "vendor/bin/phpstan {{.CLI_ARGS}}"'
 
   install:
+    deps: [up]
     cmd: 'docker compose exec rector-php sh -c "composer install"'
     sources:
       - composer.json
@@ -62,6 +66,7 @@ tasks:
     cmd: 'vendor/bin/composer-unused {{.CLI_ARGS}}'
 
   check:
+    deps: [install]
     cmds:
       - task: cs
 #      - task: stan

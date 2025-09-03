@@ -1,11 +1,11 @@
 <?php
 
-new DateTimeImmutable('now');
+new DateTimeImmutable('+ 1 hour');
 
 ?>
 -----
 <?php
 
-new DateTimeImmutable();
+new DateTimeImmutable(datetime: '+ 1 hour');
 
 ?>
