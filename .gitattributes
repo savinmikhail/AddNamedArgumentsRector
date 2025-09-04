@@ -10,3 +10,4 @@
 /.github export-ignore
 /docker-compose.yaml export-ignore
 /Dockerfile export-ignore
+/dist-size-status.json export-ignore

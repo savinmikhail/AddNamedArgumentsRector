@@ -65,6 +65,10 @@ tasks:
     deps: [install]
     cmd: 'vendor/bin/composer-unused {{.CLI_ARGS}}'
 
+  dist-size-optimize:
+    deps: [ install ]
+    cmd: 'vendor/bin/dist-size-optimizer check {{.CLI_ARGS}}'
+    
   check:
     deps: [install]
     cmds:
@@ -77,3 +81,4 @@ tasks:
       - task: composer-normalize
 #      - task: composer-check-require
 #      - task: composer-check-unused
+      - task: dist-size-optimize
