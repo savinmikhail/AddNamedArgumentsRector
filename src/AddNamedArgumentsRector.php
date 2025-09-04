@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace SavinMikhail\AddNamedArgumentsRector;
 
 use InvalidArgumentException;
-use PhpParser\Node;
 use PhpParser\ConstExprEvaluator;
+use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
@@ -15,20 +15,25 @@ use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Identifier;
 use PHPStan\Reflection\ExtendedParameterReflection;
 use PHPStan\Reflection\ReflectionProvider;
+use PHPStan\Type\ConstantScalarType;
 use Rector\Contract\Rector\ConfigurableRectorInterface;
 use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\NodeTypeResolver\NodeTypeResolver;
 use Rector\Rector\AbstractRector;
 use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
+use RuntimeException;
 use SavinMikhail\AddNamedArgumentsRector\Config\ConfigStrategy;
 use SavinMikhail\AddNamedArgumentsRector\Config\DefaultStrategy;
 use SavinMikhail\AddNamedArgumentsRector\Reflection\Reflection;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use Throwable;
 use Webmozart\Assert\Assert;
 
+use function constant;
 use function count;
+use function defined;
 
 /**
  * @see AddNamedArgumentsRectorTest
@@ -57,11 +62,11 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
         }
         $this->reflectionService = $reflectionService;
         $this->constExprEvaluator = $constExprEvaluator ?? new ConstExprEvaluator(static function (string $name) {
-            if (\defined($name)) {
-                return \constant($name);
+            if (defined($name)) {
+                return constant($name);
             }
 
-            throw new \RuntimeException("Undefined constant: {$name}");
+            throw new RuntimeException("Undefined constant: {$name}");
         });
     }
 
@@ -107,6 +112,7 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
             $parameter = $parameters[$index] ?? null;
             if ($parameter === null) {
                 $namedArgs[] = $arg;
+
                 continue;
             }
 
@@ -125,19 +131,20 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
     {
         try {
             $defaultValue = $parameter->getDefaultValue();
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return false;
         }
 
         try {
             $argValue = $this->constExprEvaluator->evaluateDirectly($arg->value);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return false;
         }
 
-        if ($defaultValue instanceof \PHPStan\Type\ConstantScalarType) {
+        if ($defaultValue instanceof ConstantScalarType) {
             $defaultValue = $defaultValue->getValue();
         }
+
         return $argValue === $defaultValue;
     }
 

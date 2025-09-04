@@ -23,8 +23,8 @@ final readonly class ParameterReflection
 {
     public function __construct(
         private ReflectionProvider $reflectionProvider,
-        protected NodeNameResolver $nodeNameResolver,
-        protected NodeTypeResolver $nodeTypeResolver,
+        private NodeNameResolver $nodeNameResolver,
+        private NodeTypeResolver $nodeTypeResolver,
     ) {}
 
     /**
