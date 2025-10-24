@@ -116,6 +116,12 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
                 continue;
             }
 
+            if ($arg->name !== null) {
+                $namedArgs[] = $arg;
+
+                continue;
+            }
+
             if ($this->shouldSkipArg($arg, $parameter)) {
                 continue;
             }
