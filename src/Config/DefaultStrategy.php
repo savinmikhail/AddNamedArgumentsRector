@@ -78,9 +78,15 @@ final readonly class DefaultStrategy implements ConfigStrategy
                 return false;
             }
 
-            // skip already named arguments
+            // Allow already named arguments as long as they reference the parameter in the same position
             if ($arg->name !== null) {
-                return false;
+                $argName = $arg->name instanceof Node\Identifier ? $arg->name->toString() : null;
+
+                if ($argName !== $parameters[$index]->getName()) {
+                    return false;
+                }
+
+                continue;
             }
         }
 
