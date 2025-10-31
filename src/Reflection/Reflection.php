@@ -21,6 +21,8 @@ use ReflectionException;
 use ReflectionFunction;
 use ReflectionFunctionAbstract;
 
+use function in_array;
+
 final readonly class Reflection
 {
     private ParameterReflection $parameterReflection;

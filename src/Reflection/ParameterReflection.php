@@ -12,12 +12,15 @@ use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PHPStan\Analyser\Scope;
+use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ExtendedParameterReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\ShouldNotHappenException;
 use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\NodeTypeResolver\NodeTypeResolver;
+
+use function in_array;
 
 final readonly class ParameterReflection
 {
@@ -202,7 +205,7 @@ final readonly class ParameterReflection
         return null;
     }
 
-    private function resolveClassReflectionFromName(Name $name, Scope $scope): ?\PHPStan\Reflection\ClassReflection
+    private function resolveClassReflectionFromName(Name $name, Scope $scope): ?ClassReflection
     {
         $className = $this->nodeNameResolver->getName(node: $name);
 
