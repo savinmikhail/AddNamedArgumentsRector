@@ -10,10 +10,12 @@ use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Name;
+use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ExtendedParameterReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use Rector\NodeNameResolver\NodeNameResolver;
+use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\NodeTypeResolver\NodeTypeResolver;
 use ReflectionException;
 use ReflectionFunction;
@@ -132,19 +134,35 @@ final readonly class Reflection
         }
 
         if ($node instanceof StaticCall && $node->class instanceof Name) {
-            return $this->fetchClass($node->class);
+            return $this->fetchClass($node->class, $node);
         }
 
         if ($node instanceof New_ && $node->class instanceof Name) {
-            return $this->fetchClass($node->class);
+            return $this->fetchClass($node->class, $node);
         }
 
         return null;
     }
 
-    private function fetchClass(Name $name): ?ClassReflection
+    private function fetchClass(Name $name, Node $contextNode): ?ClassReflection
     {
         $className = $this->nodeNameResolver->getName(node: $name);
+        if ($className === null) {
+            return null;
+        }
+
+        $scope = $contextNode->getAttribute(key: AttributeKey::SCOPE);
+        if ($scope instanceof Scope) {
+            $lowerClassName = strtolower($className);
+
+            if (in_array($lowerClassName, ['self', 'static'], true)) {
+                return $scope->getClassReflection();
+            }
+
+            if ($lowerClassName === 'parent') {
+                return $scope->getClassReflection()?->getParentClass();
+            }
+        }
 
         return $this->reflectionProvider->hasClass($className)
             ? $this->reflectionProvider->getClass($className)

@@ -11,7 +11,7 @@ use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
-use PHPStan\Reflection\ClassMemberAccessAnswerer;
+use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ExtendedParameterReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\ShouldNotHappenException;
@@ -56,12 +56,15 @@ final readonly class ParameterReflection
             return [];
         }
 
-        $className = $this->nodeNameResolver->getName(node: $node->class);
-        if (! $this->reflectionProvider->hasClass($className)) {
+        $scope = $node->getAttribute(key: AttributeKey::SCOPE);
+        if (! $scope instanceof Scope) {
             return [];
         }
 
-        $classReflection = $this->reflectionProvider->getClass($className);
+        $classReflection = $this->resolveClassReflectionFromName(name: $node->class, scope: $scope);
+        if ($classReflection === null) {
+            return [];
+        }
 
         if ($node->name instanceof Identifier) {
             $methodName = $node->name->name;
@@ -75,8 +78,6 @@ final readonly class ParameterReflection
             return [];
         }
 
-        /** @var ClassMemberAccessAnswerer $scope */
-        $scope = $node->getAttribute(key: AttributeKey::SCOPE);
         $reflection = $classReflection->getMethod(methodName: $methodName, scope: $scope);
 
         try {
@@ -106,7 +107,6 @@ final readonly class ParameterReflection
             return [];
         }
 
-        /** @var ClassMemberAccessAnswerer $scope */
         $scope = $node->getAttribute(key: AttributeKey::SCOPE);
         $reflection = $callerType->getMethod($methodName, $scope);
 
@@ -200,5 +200,30 @@ final readonly class ParameterReflection
         }
 
         return null;
+    }
+
+    private function resolveClassReflectionFromName(Name $name, Scope $scope): ?\PHPStan\Reflection\ClassReflection
+    {
+        $className = $this->nodeNameResolver->getName(node: $name);
+
+        if ($className === null) {
+            return null;
+        }
+
+        $lowerClassName = strtolower($className);
+
+        if (in_array($lowerClassName, ['self', 'static'], true)) {
+            return $scope->getClassReflection();
+        }
+
+        if ($lowerClassName === 'parent') {
+            return $scope->getClassReflection()?->getParentClass();
+        }
+
+        if (! $this->reflectionProvider->hasClass($className)) {
+            return null;
+        }
+
+        return $this->reflectionProvider->getClass($className);
     }
 }
