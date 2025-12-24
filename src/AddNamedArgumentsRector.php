@@ -135,6 +135,10 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
 
     private function shouldSkipArg(Arg $arg, ExtendedParameterReflection $parameter): bool
     {
+        if (! $parameter->isOptional()) {
+            return false;
+        }
+
         try {
             $defaultValue = $parameter->getDefaultValue();
         } catch (Throwable) {
