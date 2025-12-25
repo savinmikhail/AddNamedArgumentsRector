@@ -95,7 +95,11 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
             return null;
         }
 
-        $this->addNamesToArgs(node: $node, parameters: $parameters);
+        $hasChanges = $this->addNamesToArgs(node: $node, parameters: $parameters);
+
+        if (! $hasChanges) {
+            return null;
+        }
 
         return $node;
     }
@@ -106,8 +110,9 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
     private function addNamesToArgs(
         FuncCall|StaticCall|MethodCall|New_ $node,
         array $parameters,
-    ): void {
+    ): bool {
         $namedArgs = [];
+        $hasChanges = false;
         foreach ($node->args as $index => $arg) {
             $parameter = $parameters[$index] ?? null;
             if ($parameter === null) {
@@ -123,14 +128,23 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
             }
 
             if ($this->shouldSkipArg($arg, $parameter)) {
+                $hasChanges = true;
+
                 continue;
             }
 
             $arg->name = new Identifier(name: $parameter->getName());
             $namedArgs[] = $arg;
+            $hasChanges = true;
+        }
+
+        if (! $hasChanges) {
+            return false;
         }
 
         $node->args = $namedArgs;
+
+        return true;
     }
 
     private function shouldSkipArg(Arg $arg, ExtendedParameterReflection $parameter): bool
