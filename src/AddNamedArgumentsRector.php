@@ -40,7 +40,13 @@ use function defined;
  */
 final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVersionInterface, ConfigurableRectorInterface
 {
+    public const STRATEGY = 0;
+
+    public const ALLOW_NAMED_VARIADIC_ARGUMENTS = 1;
+
     private string $configStrategy = DefaultStrategy::class;
+
+    private bool $allowNamedVariadicArguments = true;
 
     private readonly Reflection $reflectionService;
 
@@ -95,6 +101,10 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
             return null;
         }
 
+        if (! $this->allowNamedVariadicArguments && $this->hasVariadicArguments($node, $parameters)) {
+            return null;
+        }
+
         $hasChanges = $this->addNamesToArgs(node: $node, parameters: $parameters);
 
         if (! $hasChanges) {
@@ -112,9 +122,10 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
         array $parameters,
     ): bool {
         $namedArgs = [];
+        $variadicArgCounters = [];
         $hasChanges = false;
         foreach ($node->args as $index => $arg) {
-            $parameter = $parameters[$index] ?? null;
+            $parameter = $this->resolveParameterForArgumentIndex(parameters: $parameters, index: $index);
             if ($parameter === null) {
                 $namedArgs[] = $arg;
 
@@ -127,13 +138,21 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
                 continue;
             }
 
-            if ($this->shouldSkipArg($arg, $parameter)) {
+            if (! $parameter->isVariadic() && $this->shouldSkipArg($arg, $parameter)) {
                 $hasChanges = true;
 
                 continue;
             }
 
-            $arg->name = new Identifier(name: $parameter->getName());
+            if ($parameter->isVariadic()) {
+                $variadicParameterName = $parameter->getName();
+                $variadicIndex = ($variadicArgCounters[$variadicParameterName] ?? 0) + 1;
+                $variadicArgCounters[$variadicParameterName] = $variadicIndex;
+
+                $arg->name = new Identifier(name: $variadicParameterName . $variadicIndex);
+            } else {
+                $arg->name = new Identifier(name: $parameter->getName());
+            }
             $namedArgs[] = $arg;
             $hasChanges = true;
         }
@@ -172,6 +191,49 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
         return $argValue === $defaultValue;
     }
 
+    /**
+     * @param ExtendedParameterReflection[] $parameters
+     */
+    private function hasVariadicArguments(
+        FuncCall|StaticCall|MethodCall|New_ $node,
+        array $parameters,
+    ): bool {
+        foreach ($node->args as $index => $arg) {
+            if ($arg instanceof Arg && $arg->unpack) {
+                continue;
+            }
+
+            $parameter = $this->resolveParameterForArgumentIndex(parameters: $parameters, index: $index);
+            if ($parameter !== null && $parameter->isVariadic()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param ExtendedParameterReflection[] $parameters
+     */
+    private function resolveParameterForArgumentIndex(array $parameters, int $index): ?ExtendedParameterReflection
+    {
+        if (isset($parameters[$index])) {
+            return $parameters[$index];
+        }
+
+        if ($parameters === []) {
+            return null;
+        }
+
+        $lastParameter = $parameters[array_key_last($parameters)];
+
+        if (! $lastParameter->isVariadic()) {
+            return null;
+        }
+
+        return $lastParameter;
+    }
+
     public function provideMinPhpVersion(): int
     {
         return PhpVersion::PHP_80;
@@ -179,20 +241,33 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
 
     public function configure(array $configuration): void
     {
-        Assert::lessThan(value: count(value: $configuration), limit: 2, message: 'You can pass only 1 strategy');
+        Assert::lessThan(value: count(value: $configuration), limit: 3, message: 'You can pass only 1 strategy and 1 variadic option');
         if ($configuration === []) {
             return;
         }
-        $strategyClass = $configuration[0];
 
-        if (!class_exists(class: $strategyClass)) {
-            throw new InvalidArgumentException(message: "Class {$strategyClass} does not exist.");
+        $strategyClass = $configuration[self::STRATEGY] ?? null;
+        if (is_bool($strategyClass)) {
+            $this->allowNamedVariadicArguments = $strategyClass;
+
+            return;
         }
 
-        $strategy = new $strategyClass();
+        if ($strategyClass !== null) {
+            if (! is_string($strategyClass) || ! class_exists(class: $strategyClass)) {
+                throw new InvalidArgumentException(message: "Class {$strategyClass} does not exist.");
+            }
 
-        Assert::isInstanceOf(value: $strategy, class: ConfigStrategy::class, message: 'Your strategy must implement ConfigStrategy interface');
+            $strategy = new $strategyClass();
 
-        $this->configStrategy = $strategyClass;
+            Assert::isInstanceOf(value: $strategy, class: ConfigStrategy::class, message: 'Your strategy must implement ConfigStrategy interface');
+
+            $this->configStrategy = $strategyClass;
+        }
+
+        if (array_key_exists(self::ALLOW_NAMED_VARIADIC_ARGUMENTS, $configuration)) {
+            Assert::boolean(value: $configuration[self::ALLOW_NAMED_VARIADIC_ARGUMENTS], message: 'Variadic option must be boolean');
+            $this->allowNamedVariadicArguments = $configuration[self::ALLOW_NAMED_VARIADIC_ARGUMENTS];
+        }
     }
 }

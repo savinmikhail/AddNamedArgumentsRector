@@ -12,6 +12,7 @@ use PhpParser\Node\Expr\StaticCall;
 use PHPStan\BetterReflection\Reflection\Adapter\ReflectionClass;
 use PHPStan\BetterReflection\Reflection\Adapter\ReflectionEnum;
 use PHPStan\Reflection\ClassReflection;
+use PHPStan\Reflection\ExtendedParameterReflection;
 use ReflectionFunctionAbstract;
 use SavinMikhail\AddNamedArgumentsRector\Reflection\Reflection;
 
@@ -57,15 +58,15 @@ final readonly class DefaultStrategy implements ConfigStrategy
         return true;
     }
 
+    /**
+     * @param Node[] $args
+     * @param ExtendedParameterReflection[] $parameters
+     */
     private static function areArgumentsSuitable(array $args, array $parameters): bool
     {
         foreach ($args as $index => $arg) {
-            if (!isset($parameters[$index])) {
-                return false;
-            }
-
-            // Skip variadic parameters (...$param)
-            if ($parameters[$index]->isVariadic()) {
+            $parameter = self::resolveParameterForArgumentIndex(parameters: $parameters, index: $index);
+            if ($parameter === null) {
                 return false;
             }
 
@@ -74,15 +75,19 @@ final readonly class DefaultStrategy implements ConfigStrategy
             }
 
             // Skip unpacking arguments (...$var)
-            if ($arg instanceof Node\Arg && $arg->unpack) {
+            if ($arg->unpack) {
                 return false;
             }
 
             // Allow already named arguments as long as they reference the parameter in the same position
             if ($arg->name !== null) {
-                $argName = $arg->name instanceof Node\Identifier ? $arg->name->toString() : null;
+                if ($parameter->isVariadic()) {
+                    continue;
+                }
 
-                if ($argName !== $parameters[$index]->getName()) {
+                $argName = $arg->name->toString();
+
+                if ($argName !== $parameter->getName()) {
                     return false;
                 }
 
@@ -91,6 +96,28 @@ final readonly class DefaultStrategy implements ConfigStrategy
         }
 
         return true;
+    }
+
+    /**
+     * @param ExtendedParameterReflection[] $parameters
+     */
+    private static function resolveParameterForArgumentIndex(array $parameters, int $index): ?ExtendedParameterReflection
+    {
+        if (isset($parameters[$index])) {
+            return $parameters[$index];
+        }
+
+        if ($parameters === []) {
+            return null;
+        }
+
+        $lastParameter = $parameters[array_key_last($parameters)];
+
+        if (! $lastParameter->isVariadic()) {
+            return null;
+        }
+
+        return $lastParameter;
     }
 
     private static function hasNoNamedArgumentsTag(ReflectionFunctionAbstract|ReflectionClass|ReflectionEnum $reflection): bool
