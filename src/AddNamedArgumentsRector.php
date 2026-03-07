@@ -31,9 +31,12 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 use Throwable;
 use Webmozart\Assert\Assert;
 
+use function array_key_exists;
 use function constant;
 use function count;
 use function defined;
+use function is_bool;
+use function is_string;
 
 /**
  * @see AddNamedArgumentsRectorTest
@@ -41,7 +44,6 @@ use function defined;
 final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVersionInterface, ConfigurableRectorInterface
 {
     public const STRATEGY = 0;
-
     public const ALLOW_NAMED_VARIADIC_ARGUMENTS = 1;
 
     private string $configStrategy = DefaultStrategy::class;
