@@ -67,10 +67,15 @@ use SavinMikhail\AddNamedArgumentsRector\Config\PhpyhStrategy;
 return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->ruleWithConfiguration(
         AddNamedArgumentsRector::class,
-        [PhpyhStrategy::class]
+        [
+            AddNamedArgumentsRector::STRATEGY => PhpyhStrategy::class,
+            AddNamedArgumentsRector::ALLOW_NAMED_VARIADIC_ARGUMENTS => false,
+        ]
     );
 };
 ```
+
+`ALLOW_NAMED_VARIADIC_ARGUMENTS` is enabled by default. If you set it to `false`, calls that include variadic arguments are skipped.
 
 #### Implementing Your Own Strategy
 
