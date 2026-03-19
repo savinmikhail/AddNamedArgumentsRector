@@ -18,7 +18,8 @@
         "nikic/php-parser": "^4.19.4 || ^5.1",
         "phpstan/phpstan": "^2.1.5",
         "rector/rector": "^2.0.9",
-        "symplify/rule-doc-generator-contracts": "^11.2"
+        "symplify/rule-doc-generator-contracts": "^11.2",
+        "webmozart/assert": "^1.11"
     },
     "require-dev": {
         "ergebnis/composer-normalize": "^2.45",
