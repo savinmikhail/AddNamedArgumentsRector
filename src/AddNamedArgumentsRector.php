@@ -103,11 +103,20 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
             return null;
         }
 
-        if (! $this->allowNamedVariadicArguments && $this->hasVariadicArguments($node, $parameters)) {
+        $hasVariadicArguments = $this->hasVariadicArguments($node, $parameters);
+        if (! $this->allowNamedVariadicArguments && $hasVariadicArguments) {
             return null;
         }
 
-        $hasChanges = $this->addNamesToArgs(node: $node, parameters: $parameters);
+        $functionReflection = Reflection::getFunctionReflection(node: $node, classReflection: $classReflection);
+        if ($hasVariadicArguments && ($functionReflection?->isInternal() ?? false)) {
+            return null;
+        }
+
+        $hasChanges = $this->addNamesToArgs(
+            node: $node,
+            parameters: $parameters,
+        );
 
         if (! $hasChanges) {
             return null;
@@ -152,9 +161,13 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
                 $variadicArgCounters[$variadicParameterName] = $variadicIndex;
 
                 $arg->name = new Identifier(name: $variadicParameterName . $variadicIndex);
-            } else {
-                $arg->name = new Identifier(name: $parameter->getName());
+                $namedArgs[] = $arg;
+                $hasChanges = true;
+
+                continue;
             }
+
+            $arg->name = new Identifier(name: $parameter->getName());
             $namedArgs[] = $arg;
             $hasChanges = true;
         }

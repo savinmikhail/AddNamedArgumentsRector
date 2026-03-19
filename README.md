@@ -75,7 +75,7 @@ return static function (RectorConfig $rectorConfig): void {
 };
 ```
 
-`ALLOW_NAMED_VARIADIC_ARGUMENTS` is enabled by default. If you set it to `false`, calls that include variadic arguments are skipped.
+`ALLOW_NAMED_VARIADIC_ARGUMENTS` is enabled by default. For user-defined callables, the rule may still synthesize names for variadic entries (for example `values1`, `values2`), because PHP accepts unknown named arguments there and forwards them into the variadic parameter. Internal/native variadic callables such as `sprintf()` are skipped when a variadic tail is actually passed, because PHP rejects unknown named parameters there and named arguments also cannot be followed by positional ones. If you set it to `false`, calls that include variadic arguments are skipped entirely.
 
 #### Implementing Your Own Strategy
 
