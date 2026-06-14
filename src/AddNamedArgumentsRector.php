@@ -36,7 +36,11 @@ use function constant;
 use function count;
 use function defined;
 use function is_bool;
+use function is_array;
 use function is_string;
+use function preg_match;
+use function preg_quote;
+use function str_contains;
 
 /**
  * @see AddNamedArgumentsRectorTest
@@ -45,10 +49,16 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
 {
     public const STRATEGY = 0;
     public const ALLOW_NAMED_VARIADIC_ARGUMENTS = 1;
+    public const SKIP_CALLS = 'skip_calls';
 
     private string $configStrategy = DefaultStrategy::class;
 
     private bool $allowNamedVariadicArguments = true;
+
+    /**
+     * @var string[]
+     */
+    private array $skipCalls = [];
 
     private readonly Reflection $reflectionService;
 
@@ -100,6 +110,10 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
         $classReflection = $this->reflectionService->getClassReflection(node: $node);
 
         if (!$this->configStrategy::shouldApply($node, $parameters, $classReflection)) {
+            return null;
+        }
+
+        if ($this->shouldSkipCall($node, $classReflection)) {
             return null;
         }
 
@@ -249,6 +263,58 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
         return $lastParameter;
     }
 
+    private function shouldSkipCall(
+        FuncCall|StaticCall|MethodCall|New_ $node,
+        ?\PHPStan\Reflection\ClassReflection $classReflection,
+    ): bool {
+        if ($this->skipCalls === []) {
+            return false;
+        }
+
+        $callSignature = $this->resolveCallSignature($node, $classReflection);
+        if ($callSignature === null) {
+            return false;
+        }
+
+        foreach ($this->skipCalls as $pattern) {
+            if ($this->matchesSkipPattern($pattern, $callSignature)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function matchesSkipPattern(string $pattern, string $callSignature): bool
+    {
+        if (! str_contains($pattern, '*')) {
+            return $pattern === $callSignature;
+        }
+
+        $regex = '#^' . str_replace('\*', '.*', preg_quote($pattern, '#')) . '$#';
+
+        return preg_match($regex, $callSignature) === 1;
+    }
+
+    private function resolveCallSignature(
+        FuncCall|StaticCall|MethodCall|New_ $node,
+        ?\PHPStan\Reflection\ClassReflection $classReflection,
+    ): ?string {
+        if ($node instanceof FuncCall) {
+            return $this->getName($node->name);
+        }
+
+        if ($node instanceof New_ && $classReflection !== null) {
+            return $classReflection->getName() . '::__construct';
+        }
+
+        if (($node instanceof MethodCall || $node instanceof StaticCall) && $classReflection !== null && $node->name instanceof Identifier) {
+            return $classReflection->getName() . '::' . $node->name->toString();
+        }
+
+        return null;
+    }
+
     public function provideMinPhpVersion(): int
     {
         return PhpVersion::PHP_80;
@@ -256,7 +322,7 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
 
     public function configure(array $configuration): void
     {
-        Assert::lessThan(value: count(value: $configuration), limit: 3, message: 'You can pass only 1 strategy and 1 variadic option');
+        Assert::lessThan(value: count(value: $configuration), limit: 4, message: 'You can pass only 1 strategy, 1 variadic option, and 1 skip list');
         if ($configuration === []) {
             return;
         }
@@ -283,6 +349,12 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
         if (array_key_exists(self::ALLOW_NAMED_VARIADIC_ARGUMENTS, $configuration)) {
             Assert::boolean(value: $configuration[self::ALLOW_NAMED_VARIADIC_ARGUMENTS], message: 'Variadic option must be boolean');
             $this->allowNamedVariadicArguments = $configuration[self::ALLOW_NAMED_VARIADIC_ARGUMENTS];
+        }
+
+        if (array_key_exists(self::SKIP_CALLS, $configuration)) {
+            Assert::true(value: is_array($configuration[self::SKIP_CALLS]), message: 'Skip calls option must be array');
+            Assert::allString(value: $configuration[self::SKIP_CALLS], message: 'Skip calls option must contain only strings');
+            $this->skipCalls = $configuration[self::SKIP_CALLS];
         }
     }
 }

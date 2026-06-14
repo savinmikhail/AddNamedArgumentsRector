@@ -70,12 +70,18 @@ return static function (RectorConfig $rectorConfig): void {
         [
             AddNamedArgumentsRector::STRATEGY => PhpyhStrategy::class,
             AddNamedArgumentsRector::ALLOW_NAMED_VARIADIC_ARGUMENTS => false,
+            AddNamedArgumentsRector::SKIP_CALLS => [
+                'Doctrine\\ORM\\QueryBuilder::addSelect',
+                'Doctrine\\ORM\\QueryBuilder::*',
+            ],
         ]
     );
 };
 ```
 
 `ALLOW_NAMED_VARIADIC_ARGUMENTS` is enabled by default. For user-defined callables, the rule may still synthesize names for variadic entries (for example `values1`, `values2`), because PHP accepts unknown named arguments there and forwards them into the variadic parameter. Internal/native variadic callables such as `sprintf()` are skipped when a variadic tail is actually passed, because PHP rejects unknown named parameters there and named arguments also cannot be followed by positional ones. If you set it to `false`, calls that include variadic arguments are skipped entirely.
+
+`SKIP_CALLS` lets you exclude specific call sites without writing a custom strategy. Supported patterns are exact signatures such as `Doctrine\ORM\QueryBuilder::addSelect` and `*` wildcards such as `Doctrine\ORM\QueryBuilder::*`. Functions use their plain name, constructors use `ClassName::__construct`.
 
 #### Implementing Your Own Strategy
 
