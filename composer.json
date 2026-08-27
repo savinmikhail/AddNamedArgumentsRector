@@ -1,11 +1,17 @@
 {
     "name": "savinmikhail/add_named_arguments_rector",
-    "description": "Rector rule to add names to arguments for functions'/methods' calls",
+    "description": "Rector extension for PHP that converts positional function, method, and constructor calls to named arguments.",
     "license": "MIT",
     "type": "rector-extension",
     "keywords": [
-        "static analysis",
-        "dev"
+        "automated refactoring",
+        "dev",
+        "named arguments",
+        "php",
+        "rector",
+        "rector extension",
+        "refactoring",
+        "static analysis"
     ],
     "authors": [
         {
