@@ -13,6 +13,7 @@ use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Identifier;
+use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ExtendedParameterReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\ConstantScalarType;
@@ -35,8 +36,8 @@ use function array_key_exists;
 use function constant;
 use function count;
 use function defined;
-use function is_bool;
 use function is_array;
+use function is_bool;
 use function is_string;
 use function preg_match;
 use function preg_quote;
@@ -265,7 +266,7 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
 
     private function shouldSkipCall(
         FuncCall|StaticCall|MethodCall|New_ $node,
-        ?\PHPStan\Reflection\ClassReflection $classReflection,
+        ?ClassReflection $classReflection,
     ): bool {
         if ($this->skipCalls === []) {
             return false;
@@ -298,7 +299,7 @@ final class AddNamedArgumentsRector extends AbstractRector implements MinPhpVers
 
     private function resolveCallSignature(
         FuncCall|StaticCall|MethodCall|New_ $node,
-        ?\PHPStan\Reflection\ClassReflection $classReflection,
+        ?ClassReflection $classReflection,
     ): ?string {
         if ($node instanceof FuncCall) {
             return $this->getName($node->name);
