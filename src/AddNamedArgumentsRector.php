@@ -21,14 +21,14 @@ use Rector\Contract\Rector\ConfigurableRectorInterface;
 use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\NodeTypeResolver\NodeTypeResolver;
 use Rector\Rector\AbstractRector;
-use Rector\RuleDoc\CodeSample\CodeSample;
-use Rector\RuleDoc\RuleDefinition;
 use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use RuntimeException;
 use SavinMikhail\AddNamedArgumentsRector\Config\ConfigStrategy;
 use SavinMikhail\AddNamedArgumentsRector\Config\DefaultStrategy;
 use SavinMikhail\AddNamedArgumentsRector\Reflection\Reflection;
+use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
+use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 use Throwable;
 use Webmozart\Assert\Assert;
 
